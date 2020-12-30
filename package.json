@@ -1,0 +1,15 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "client": "cd client && yarn start",
+    "build": "cd client && yarn build",
+    "server": "cd server && npm run start",
+    "production": "cd server && npm run production"
+  },
+  "author": "",
+  "license": "ISC"
+}
