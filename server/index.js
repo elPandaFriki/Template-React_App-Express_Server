@@ -31,11 +31,11 @@ function setIPPort() {
       }
     }
   }
-  global.IP = process.env.NODE_ENV === 'development'
-    ? "localhost"
-    : netsResults.eno2[0] || "localhost";
+  global.IP =
+    process.env.NODE_ENV === "development"
+      ? "localhost"
+      : process.env.IP || netsResults.eno2[0];
   global.PORT = process.env.PORT || 4000;
-  console.log("Server at", IP, PORT);
 }
 
 setIPPort();

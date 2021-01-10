@@ -1,10 +1,10 @@
+const socketioJwt = require("socketio-jwt");
+
 let clientsConnected = 0;
 
 function setSocketIO() {
   io.on("connection", (socket) => {
     clientsConnected += 1;
-    process.env.NODE_ENV === "production" &&
-      console.log(`CLIENT CONNECTED\nTotal clients: ${clientsConnected}`);
     global.socket = socket;
     setSocketListeners();
   });
@@ -13,8 +13,6 @@ function setSocketIO() {
 function setSocketListeners() {
   socket.on("disconnect", () => {
     clientsConnected -= 1;
-    process.env.NODE_ENV === "production" &&
-      console.log(`CLIENT DISCONNECTED\nTotal clients: ${clientsConnected}`);
   });
 }
 
@@ -25,5 +23,13 @@ module.exports = function () {
     },
   });
   global.io = io;
+  io.use(
+    socketioJwt.authorize({
+      secret: process.env.JWT_TOKEN || "placeholder_jwt",
+      handshake: true,
+      auth_header_required: true,
+      callback: false,
+    })
+  );
   setSocketIO();
 };
