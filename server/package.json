@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "production": "NODE_ENV=production nodemon .",
-    "start": "nodemon ."
+    "start": "NODE_ENV=development nodemon ."
   },
   "author": "",
   "license": "ISC",

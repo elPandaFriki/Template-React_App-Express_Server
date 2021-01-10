@@ -19,5 +19,11 @@ function setSocketListeners() {
 }
 
 module.exports = function () {
+  const io = require("socket.io")(server, {
+    cors: {
+      origin: "*",
+    },
+  });
+  global.io = io;
   setSocketIO();
 };
