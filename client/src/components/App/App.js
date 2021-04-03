@@ -2,14 +2,17 @@ import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import io from "socket.io-client";
-import { TextField } from "@material-ui/core";
+import { TextField, Button } from "@material-ui/core";
 import jwt from "jsonwebtoken";
+import _ from "lodash";
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       fields: {},
+      usersConnected: null,
+      users: [],
     };
   }
 
@@ -36,16 +39,30 @@ class App extends React.Component {
   }
 
   connectSocket = (newToken = null) => {
+    const { fields } = this.state;
     let token = sessionStorage.getItem("token");
     if (newToken != null) token = newToken;
     const socket = io.connect(`${window.location.hostname}:4000`, {
       query: `token=${token}`,
-      extraHeaders: { Authorization: `Bearer ${token}` },
+      extraHeaders: {
+        username: _.get(
+          fields,
+          "user.value",
+          sessionStorage.getItem("username")
+        ),
+        Authorization: `Bearer ${token}`,
+      },
     });
     window.socket = socket;
     socket.on("connect", () => {
       this.setState({
         socketConnected: true,
+      });
+    });
+    socket.on("USERS_CONNECTED", (payload) => {
+      this.setState({
+        usersConnected: payload.size,
+        users: payload.data,
       });
     });
   };
@@ -57,6 +74,7 @@ class App extends React.Component {
       process.env.JWT_TOKEN || "placeholder_jwt"
     );
     sessionStorage.setItem("token", token);
+    sessionStorage.setItem("username", fields.user.value);
     this.connectSocket(token);
   };
 
@@ -93,14 +111,24 @@ class App extends React.Component {
     });
   };
 
+  disconnectSocket = () => {
+    window.socket.emit("FORCE_DISCONNECT");
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
   render() {
-    const { socketConnected, fields } = this.state;
+    const { socketConnected, fields, usersConnected, users } = this.state;
     const items = Object.values(this.props.menuData);
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          {!socketConnected && (
+          {socketConnected ? (
+            <div>
+              <Button onClick={this.disconnectSocket}>DISCONNECT</Button>
+            </div>
+          ) : (
             <form onKeyPress={this.onKeyPress}>
               {items.map((item) => {
                 if (item.type === "text" || item.type == null)
@@ -131,14 +159,24 @@ class App extends React.Component {
               })}
             </form>
           )}
-          <p className="socketStatus">
+          <div className="socketStatus">
             <span>Log Status</span>
             {socketConnected ? (
               <span className="socketStatus-On">ON</span>
             ) : (
               <span className="socketStatus-Off">OFF</span>
             )}
-          </p>
+          </div>
+          <div>
+            {usersConnected != null && (
+              <span>USERS CONNECTED: {usersConnected}</span>
+            )}
+            {users.map(user => {
+              return <p>
+                {user.username}
+              </p>
+            })}
+          </div>
         </header>
       </div>
     );
